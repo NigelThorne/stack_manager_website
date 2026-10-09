@@ -1,0 +1,55 @@
+{
+  "name": "stack_manager_website",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.34.6",
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --outDir dist/client",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.infra.json",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "test:e2e": "pnpm build && playwright test",
+    "preview:cloudflare": "wrangler pages dev dist/client --ip 127.0.0.1 --port 5198",
+    "cloudflare:plan": "alchemy plan --stage prod --profile default",
+    "cloudflare:provision": "alchemy deploy --stage prod --profile default",
+    "cloudflare:upload": "wrangler pages deploy dist/client --project-name stack-manager-website --branch main",
+    "cloudflare:deploy": "pnpm build && pnpm cloudflare:provision && pnpm cloudflare:upload",
+    "test": "vitest run",
+    "lint": "oxlint src alchemy.run.ts tests"
+  },
+  "dependencies": {
+    "@effect/platform-browser": "4.0.0",
+    "effect": "4.0.0",
+    "foldkit": "0.167.0"
+  },
+  "devDependencies": {
+    "@alchemy.run/frontend-frameworks": "2.0.0-beta.81",
+    "@axe-core/playwright": "4.11.1",
+    "@effect/platform-bun": "4.0.0",
+    "@effect/platform-node": "4.0.0",
+    "@foldkit/devtools": "0.167.0",
+    "@foldkit/devtools-mcp": "0.24.1",
+    "@foldkit/oxlint-plugin": "0.15.3",
+    "@foldkit/vite-plugin": "0.27.0",
+    "@playwright/test": "1.64.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "26.4.0",
+    "alchemy": "2.0.0-beta.81",
+    "happy-dom": "^20.14.5",
+    "hono": "4.13.13",
+    "miniflare": "4.20260730.0",
+    "oxfmt": "^0.66.0",
+    "oxlint": "^1.85.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2",
+    "wrangler": "4.149.0"
+  }
+}

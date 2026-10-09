@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://stackmanager.nigelthorne.com/sitemap.xml

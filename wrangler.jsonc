@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "stack-manager-website",
+  "account_id": "bcd94aafc110a8c2e44a1d013e7e0081",
+  "pages_build_output_dir": "./dist/client",
+  "compatibility_date": "2026-07-30",
+  "send_metrics": false,
+}

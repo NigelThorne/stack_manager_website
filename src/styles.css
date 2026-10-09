@@ -234,8 +234,9 @@ pre {
 }
 .worktree-row {
   display: grid;
-  grid-template-columns: 1fr 2.5rem 1fr;
-  align-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: stretch;
 }
 .worktree-card {
   display: grid;
@@ -258,8 +259,18 @@ pre {
   color: #8fb7ef;
   font-size: 0.75rem;
 }
-.connector {
-  height: 1px;
+.stack-service {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-size: 0.85rem;
+}
+.worktree-card > .connector {
+  width: 1px;
+  height: 1rem;
+  margin: -0.55rem auto;
   background: #406790;
 }
 .terminal {
@@ -540,11 +551,6 @@ pre {
   .worktree-row {
     grid-template-columns: 1fr;
     gap: 0.6rem;
-  }
-  .connector {
-    width: 1px;
-    height: 1rem;
-    margin: 0 auto;
   }
   .workflow-tabs {
     grid-template-columns: 1fr;

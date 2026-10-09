@@ -160,18 +160,31 @@ const stackVisualView = (h: HtmlBuilder<Message>): Html =>
             [
               h.small([], ['STACK A']),
               h.strong([], ['search-ui']),
-              h.code([], ['web :4312']),
-              h.code([], ['api :4311']),
+              h.div(
+                [h.Class('stack-service')],
+                [h.span([], ['Frontend']), h.code([], [':4312'])],
+              ),
+              h.div([h.Class('connector'), h.AriaHidden(true)]),
+              h.div(
+                [h.Class('stack-service')],
+                [h.span([], ['Backend']), h.code([], [':4311'])],
+              ),
             ],
           ),
-          h.div([h.Class('connector'), h.AriaHidden(true)]),
           h.div(
             [h.Class('worktree-card')],
             [
               h.small([], ['STACK B']),
               h.strong([], ['checkout-fix']),
-              h.code([], ['web :4332']),
-              h.code([], ['api :4331']),
+              h.div(
+                [h.Class('stack-service')],
+                [h.span([], ['Frontend']), h.code([], [':4332'])],
+              ),
+              h.div([h.Class('connector'), h.AriaHidden(true)]),
+              h.div(
+                [h.Class('stack-service')],
+                [h.span([], ['Backend']), h.code([], [':4331'])],
+              ),
             ],
           ),
         ],
@@ -189,7 +202,9 @@ const stackVisualView = (h: HtmlBuilder<Message>): Html =>
       ),
       h.figcaption(
         [],
-        ['Illustrative stacks. Each change has its own worktrees and ports.'],
+        [
+          'Each box is a complete end-to-end stack. Services connect within their own stack, not between stacks. Illustrative only.',
+        ],
       ),
     ],
   )
@@ -342,8 +357,8 @@ const featuresView = (h: HtmlBuilder<Message>): Html =>
           ),
           featureCard(
             '04',
-            'Wire up the environment',
-            'Assign ports, render local service URLs and copy declared private env files into worktrees. Start services in dependency order.',
+            'Allocate and manage ports',
+            'Stack Manager allocates and tracks ports for each stack. You must configure your services to use those ports, through env vars or command arguments.',
             h,
           ),
           featureCard(
@@ -354,6 +369,18 @@ const featuresView = (h: HtmlBuilder<Message>): Html =>
           ),
           featureCard(
             '06',
+            'Check service health',
+            'Use process or HTTP readiness checks before starting dependent services. Check component health from the CLI or local dashboard.',
+            h,
+          ),
+          featureCard(
+            '07',
+            'Wire up the environment',
+            'Render local service addresses and copy declared private env files into each worktree. Keep each stack pointing at its own services.',
+            h,
+          ),
+          featureCard(
+            '08',
             'Review before you share',
             'Run the frontend and backend together and review your change locally, end to end. When you are finished, review and approve the cleanup steps.',
             h,

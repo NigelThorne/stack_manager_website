@@ -25,6 +25,9 @@ test('serves useful generated HTML and real missing-page status without JavaScri
     'Share the big folders',
     'node_modules',
     'Choose flags per stack',
+    'Allocate and manage ports',
+    'Check service health',
+    'HTTP readiness checks',
     'A tool your AI can use',
     'CLI and read JSON results',
     'Git worktrees',
@@ -45,6 +48,27 @@ test('serves useful generated HTML and real missing-page status without JavaScri
   await expect(page).toHaveURL(/\/quickstart\/?$/)
   await expect(page.locator('main')).toContainText('git clone')
   await context.close()
+})
+
+test('shows independent end-to-end stacks and explains port setup', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const stacks = page.locator('.worktree-row > .worktree-card')
+  await expect(stacks).toHaveCount(2)
+  await expect(page.locator('.worktree-row > .connector')).toHaveCount(0)
+  for (const stack of await stacks.all()) {
+    await expect(stack.locator('.stack-service')).toHaveCount(2)
+    await expect(stack.locator('.connector')).toHaveCount(1)
+    await expect(stack).toContainText('Frontend')
+    await expect(stack).toContainText('Backend')
+  }
+  await expect(
+    page.getByRole('heading', { name: 'Allocate and manage ports' }),
+  ).toBeVisible()
+  await expect(
+    page.getByText(/You must configure your services to use those ports/),
+  ).toBeVisible()
 })
 
 test('page navigation starts at the top, and Features navigates to its section', async ({

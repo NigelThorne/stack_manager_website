@@ -19,8 +19,8 @@ describe('product site', () => {
     scene(
       { update, view },
       given(homeModel),
-      expect(text('One command.')).toExist(),
-      expect(text('A whole working stack.')).toExist(),
+      expect(text('Develop in parallel.')).toExist(),
+      expect(text('Review locally.')).toExist(),
       expect(role('link', { name: 'Get started' })).toExist(),
       expect(role('button', { name: 'Configure' })).toExist(),
       expect(text('npm run cli -- add /path/to/project')).toExist(),

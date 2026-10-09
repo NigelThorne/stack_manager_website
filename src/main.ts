@@ -142,14 +142,14 @@ const stackVisualView = (h: HtmlBuilder<Message>): Html =>
   h.figure(
     [
       h.Class('stack-visual'),
-      h.AriaLabel('Illustration of a three-service stack'),
+      h.AriaLabel('Illustration of two independent local stacks'),
     ],
     [
       h.div(
         [h.Class('visual-toolbar')],
         [
-          h.span([], ['review']),
-          h.span([h.Class('running-pill')], ['● running']),
+          h.span([], ['Two changes']),
+          h.span([h.Class('running-pill')], ['● running side by side']),
         ],
       ),
       h.div(
@@ -158,18 +158,20 @@ const stackVisualView = (h: HtmlBuilder<Message>): Html =>
           h.div(
             [h.Class('worktree-card')],
             [
-              h.small([], ['WORKTREE']),
-              h.strong([], ['web']),
-              h.code([], ['localhost:4312']),
+              h.small([], ['STACK A']),
+              h.strong([], ['search-ui']),
+              h.code([], ['web :4312']),
+              h.code([], ['api :4311']),
             ],
           ),
           h.div([h.Class('connector'), h.AriaHidden(true)]),
           h.div(
             [h.Class('worktree-card')],
             [
-              h.small([], ['WORKTREE']),
-              h.strong([], ['api']),
-              h.code([], ['localhost:4311']),
+              h.small([], ['STACK B']),
+              h.strong([], ['checkout-fix']),
+              h.code([], ['web :4332']),
+              h.code([], ['api :4331']),
             ],
           ),
         ],
@@ -179,14 +181,16 @@ const stackVisualView = (h: HtmlBuilder<Message>): Html =>
         [
           h.div(
             [h.Class('terminal-top')],
-            [h.span([], ['stack-manager up']), h.span([], ['•••'])],
+            [h.span([], ['Local review']), h.span([], ['•••'])],
           ),
-          terminalLine('ready', 'database', 'ready', h),
-          terminalLine('ready', 'api', 'http ready', h),
-          terminalLine('ready', 'web', 'http ready', h),
+          terminalLine('ready', 'search-ui', 'web + api ready', h),
+          terminalLine('ready', 'checkout-fix', 'web + api ready', h),
         ],
       ),
-      h.figcaption([], ['Illustrative stack, not a live local session.']),
+      h.figcaption(
+        [],
+        ['Illustrative stacks. Each change has its own worktrees and ports.'],
+      ),
     ],
   )
 
@@ -311,11 +315,8 @@ const featuresView = (h: HtmlBuilder<Message>): Html =>
       h.div(
         [h.Class('section-intro')],
         [
-          h.p([h.Class('eyebrow')], ['One stack, many repositories']),
-          h.h2(
-            [h.Id('features-title')],
-            ['Local environments without port roulette'],
-          ),
+          h.p([h.Class('eyebrow')], ['What Stack Manager takes care of']),
+          h.h2([h.Id('features-title')], ['Separate changes. Working stacks.']),
         ],
       ),
       h.div(
@@ -323,39 +324,109 @@ const featuresView = (h: HtmlBuilder<Message>): Html =>
         [
           featureCard(
             '01',
-            'Matching worktrees',
-            'Create a named Git worktree for each configured repository and keep each task separate.',
+            'Work on changes in parallel',
+            'Give each change its own Git worktrees and local ports. Keep one stack running while you develop and test another.',
             h,
           ),
           featureCard(
             '02',
-            'Ports assigned together',
-            'Claim a non-conflicting bundle of local ports and render them into each component environment.',
+            'Share the big folders',
+            'Link reusable folders such as node_modules into your worktrees instead of installing a copy for every change. Share only when dependencies match.',
             h,
           ),
           featureCard(
             '03',
-            'Start in dependency order',
-            'Wait for process or HTTP readiness before starting components that depend on it.',
+            'Choose flags per stack',
+            'Enable or disable configured feature flags for each stack. Stack Manager passes those choices to your app as environment variables.',
             h,
           ),
           featureCard(
             '04',
-            'Provision by choice',
-            'Copy private local files and optionally link shared directories such as node_modules.',
+            'Wire up the environment',
+            'Assign ports, render local service URLs and copy declared private env files into worktrees. Start services in dependency order.',
             h,
           ),
           featureCard(
             '05',
-            'CLI and dashboard',
-            'Run scripts in the terminal or inspect stacks, health, URLs and history in a loopback-only dashboard.',
+            'A tool your AI can use',
+            'Your coding agent can create, start and inspect stacks through the CLI and read JSON results. You can check their status in the local dashboard.',
             h,
           ),
           featureCard(
             '06',
-            'Cleanup you approve',
-            'Review exact cleanup steps and explicitly approve or skip destructive actions.',
+            'Review before you share',
+            'Run the frontend and backend together and review your change locally, end to end. When you are finished, review and approve the cleanup steps.',
             h,
+          ),
+        ],
+      ),
+    ],
+  )
+
+const assumptionsView = (h: HtmlBuilder<Message>): Html =>
+  h.section(
+    [h.Class('assumptions-section'), h.AriaLabelledBy('assumptions-title')],
+    [
+      h.div(
+        [h.Class('section-intro')],
+        [
+          h.p([h.Class('eyebrow')], ['Opinionated about local development']),
+          h.h2(
+            [h.Id('assumptions-title')],
+            ['Built around the way your code runs'],
+          ),
+        ],
+      ),
+      h.div(
+        [h.Class('assumptions-grid')],
+        [
+          h.article(
+            [],
+            [
+              h.h3([], ['Git worktrees']),
+              h.p(
+                [],
+                [
+                  'Each change lives in its own checkout. Develop and test without switching the code out from under another running stack.',
+                ],
+              ),
+            ],
+          ),
+          h.article(
+            [],
+            [
+              h.h3([], ['One repo or several']),
+              h.p(
+                [],
+                [
+                  'Configure separate frontend and backend repositories, or a monorepo with a command that runs its services.',
+                ],
+              ),
+            ],
+          ),
+          h.article(
+            [],
+            [
+              h.h3([], ['Environment variables and flags']),
+              h.p(
+                [],
+                [
+                  'Your app reads service addresses and feature flags from env vars. You declare the wiring in a project config.',
+                ],
+              ),
+            ],
+          ),
+          h.article(
+            [],
+            [
+              h.h3([], ['Tested with Firebase']),
+              h.p(
+                [],
+                [
+                  'Tested with Firebase emulators for local Google Cloud Firebase backends. Your config controls service endpoints and data isolation.',
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -374,20 +445,20 @@ const homeView = (model: Model, h: HtmlBuilder<Message>): Html =>
             [
               h.p(
                 [h.Class('eyebrow')],
-                ['Configuration-driven local development'],
+                ['Independent local stacks for every change'],
               ),
               h.h1(
                 [],
                 [
-                  'One command.',
+                  'Develop in parallel.',
                   h.br([]),
-                  h.span([], ['A whole working stack.']),
+                  h.span([], ['Review locally.']),
                 ],
               ),
               h.p(
                 [h.Class('hero-subline')],
                 [
-                  'Stack Manager creates matching Git worktrees, assigns ports and starts each component when its dependencies are ready.',
+                  'Run independent local copies of your codebase at the same time. Develop and test multiple changes in parallel, then review each one end to end before you share it.',
                 ],
               ),
               h.div(
@@ -405,7 +476,7 @@ const homeView = (model: Model, h: HtmlBuilder<Message>): Html =>
               ),
               h.p(
                 [h.Class('source-note')],
-                ['Runs locally. Source available on GitHub.'],
+                ['Your worktrees. Your machine. Share when ready.'],
               ),
             ],
           ),
@@ -414,11 +485,12 @@ const homeView = (model: Model, h: HtmlBuilder<Message>): Html =>
       ),
       workflowView(model, h),
       featuresView(h),
+      assumptionsView(h),
       h.section(
         [h.Class('closing')],
         [
-          h.p([h.Class('eyebrow')], ['Ready when your config is']),
-          h.h2([], ['Give every task its own working stack.']),
+          h.p([h.Class('eyebrow')], ['Develop. Run. Review.']),
+          h.h2([], ['Share the change after you have seen it work.']),
           h.a(
             [h.Href(quickstartRouter()), h.Class('button primary')],
             ['Read the quickstart'],
@@ -590,9 +662,9 @@ const footerView = (h: HtmlBuilder<Message>): Html =>
 const routeMetadata = (route: AppRoute) =>
   AppRoute.match(route, {
     Home: () => ({
-      title: 'Stack Manager | One command. A whole working stack.',
+      title: 'Stack Manager | Develop in parallel. Review locally.',
       description:
-        'Create matching Git worktrees, assign local ports and start multi-repository development stacks in dependency order.',
+        'Run independent local copies of your codebase. Develop and test changes in parallel, then review each one end to end before you share it.',
       canonical: CANONICAL_ROOT,
     }),
     Quickstart: () => ({

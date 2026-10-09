@@ -17,6 +17,22 @@ test('serves useful generated HTML and real missing-page status without JavaScri
     expect(html).toContain('name="description"')
     expect(html).toContain(`${origin}${path === '/' ? '' : path}`)
   }
+  const home = await (await request.get('/')).text()
+  for (const copy of [
+    'Develop in parallel.',
+    'Review locally.',
+    'before you share it',
+    'Share the big folders',
+    'node_modules',
+    'Choose flags per stack',
+    'A tool your AI can use',
+    'CLI and read JSON results',
+    'Git worktrees',
+    'monorepo',
+    'Tested with Firebase',
+  ]) {
+    expect(home).toContain(copy)
+  }
   expect((await request.get('/this-page-does-not-exist')).status()).toBe(404)
   const context = await browser.newContext({ javaScriptEnabled: false })
   const page = await context.newPage()
@@ -48,7 +64,7 @@ test('page navigation starts at the top, and Features navigates to its section',
   await expect(page).toHaveURL(/\/#features$/)
   await expect(
     page.getByRole('heading', {
-      name: 'Local environments without port roulette',
+      name: 'Separate changes. Working stacks.',
     }),
   ).toBeInViewport()
   await expect(page.locator('#features-title')).toBeFocused()

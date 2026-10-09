@@ -10,7 +10,7 @@ export const renderDocument: Server.DocumentRenderer = (
   const isQuickstart = application.title.startsWith('Quickstart')
   const description = isQuickstart
     ? 'Install Stack Manager, register a reviewed project configuration and run your first local working stack.'
-    : 'Create matching Git worktrees, assign local ports and start multi-repository development stacks in dependency order.'
+    : 'Run independent local copies of your codebase. Develop and test changes in parallel, then review each one end to end before you share it.'
   const head = [
     `<meta name="description" content="${description}">`,
     '<link rel="icon" type="image/svg+xml" href="/favicon.svg">',

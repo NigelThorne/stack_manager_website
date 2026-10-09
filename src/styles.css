@@ -302,6 +302,7 @@ pre {
 }
 .workflow-section,
 .features-section,
+.assumptions-section,
 .closing,
 .quickstart {
   padding: clamp(3rem, 7vw, 6rem) clamp(1.625rem, 6vw, 7rem);
@@ -392,6 +393,14 @@ pre {
 }
 .feature-card p {
   font-size: 1.075rem;
+}
+.assumptions-section {
+  border-top: 1px solid var(--line);
+}
+.assumptions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 2.5rem;
 }
 .closing {
   display: grid;

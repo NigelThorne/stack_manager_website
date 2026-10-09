@@ -55,7 +55,24 @@ test('shows independent end-to-end stacks and explains port setup', async ({
 }) => {
   await page.goto('/')
   const stacks = page.locator('.worktree-row > .worktree-card')
+  const next = page.getByRole('button', { name: 'Next step', exact: true })
+  await expect(stacks).toHaveCount(0)
+  await next.click()
+  await expect(page.locator('.project-state')).toHaveText(
+    'Project shop registered',
+  )
+  await expect(stacks).toHaveCount(0)
+  await next.click()
+  await expect(stacks).toHaveCount(1)
+  await expect(stacks.first().locator('.demo-status.stopped')).toHaveCount(3)
+  await expect(stacks.first()).toContainText(':4311')
+  await expect(stacks.first()).toContainText(':4312')
+  await next.click()
+  await expect(stacks.first().locator('.demo-status.healthy')).toHaveCount(3)
+  await next.click()
   await expect(stacks).toHaveCount(2)
+  await expect(stacks.last()).toContainText(':4331')
+  await expect(stacks.last()).toContainText(':4332')
   await expect(page.locator('.worktree-row > .connector')).toHaveCount(0)
   for (const stack of await stacks.all()) {
     await expect(stack.locator('.stack-service')).toHaveCount(2)
@@ -63,12 +80,158 @@ test('shows independent end-to-end stacks and explains port setup', async ({
     await expect(stack).toContainText('Frontend')
     await expect(stack).toContainText('Backend')
   }
+  await next.click()
+  await expect(stacks.first().locator('.demo-status.unhealthy')).toHaveCount(2)
+  await expect(stacks.last().locator('.demo-status.healthy')).toHaveCount(3)
+  await expect(page.locator('.stack-visual figcaption')).toContainText(
+    'observes the simulated backend failure',
+  )
+  await next.click()
+  await expect(page.locator('.demo-status.healthy')).toHaveCount(6)
+  await expect(next).toBeDisabled()
+  await expect(
+    page.getByRole('button', { name: 'Play demo', exact: true }),
+  ).toBeDisabled()
+  await expect(page.locator('.stack-visual figcaption')).toContainText(
+    'did not repair the service',
+  )
   await expect(
     page.getByRole('heading', { name: 'Allocate and manage ports' }),
   ).toBeVisible()
   await expect(
     page.getByText(/You must configure your services to use those ports/),
   ).toBeVisible()
+})
+
+test('demo types, pauses, replays, finishes and stops when leaving the page', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.clock.install()
+  await page.goto('/')
+  await expect(page.locator('[data-foldkit-build]')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Play demo', exact: true }).click()
+  await page.clock.runFor(250)
+  const partial = await page.locator('.demo-terminal code').textContent()
+  expect(partial).toBeTruthy()
+  expect(partial!.length).toBeLessThan('stack-manager add ./project'.length)
+  await page.getByRole('button', { name: 'Pause demo' }).click()
+  const paused = await page.locator('.demo-terminal code').textContent()
+  await page.clock.runFor(2000)
+  await expect(page.locator('.demo-terminal code')).toHaveText(paused!)
+  await page.getByRole('button', { name: 'Replay demo' }).click()
+  await page.clock.runFor(1200)
+  await expect(page.locator('.demo-terminal code')).toHaveText(
+    'stack-manager add ./project',
+  )
+  await expect(page.locator('.stack-visual figcaption')).toHaveText(
+    'Reading the project config.',
+  )
+  await expect(page.locator('.project-state')).toHaveCount(0)
+  await page.clock.runFor(4000)
+  await expect(page.locator('.project-state')).toBeVisible()
+  await expect(page.locator('.worktree-card')).toHaveCount(0)
+  await page.clock.runFor(90000)
+  await expect(page.locator('.visual-toolbar')).toContainText('Demo complete')
+  await expect(page.locator('.demo-status.healthy')).toHaveCount(6)
+  await page.getByRole('button', { name: 'Replay demo' }).click()
+  await page.getByRole('link', { name: 'Get started', exact: true }).click()
+  await page.clock.runFor(5000)
+  await page.getByRole('link', { name: 'Stack Manager home' }).first().click()
+  await expect(
+    page.getByRole('button', { name: 'Play demo', exact: true }),
+  ).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'Pause demo' })).toHaveCount(0)
+})
+
+test('reduced motion skips typing but leaves time to read each state', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install()
+  await page.goto('/')
+  await expect(page.locator('.demo-terminal code')).toHaveText(
+    'stack-manager add ./project',
+  )
+  await page.getByRole('button', { name: 'Play demo', exact: true }).click()
+  await page.clock.runFor(100)
+  await expect(page.locator('.stack-visual figcaption')).toHaveText(
+    'Reading the project config.',
+  )
+  await expect(page.locator('.demo-terminal code')).toHaveText(
+    'stack-manager add ./project',
+  )
+  await page.clock.runFor(900)
+  await expect(page.locator('.demo-terminal code')).toHaveText(
+    'stack-manager add ./project',
+  )
+  await expect(page.locator('.typing-cursor')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Pause demo' }).click()
+})
+
+test('submitted commands apply ports, worktrees and service startup in readable stages', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install()
+  await page.goto('/')
+  await expect(page.locator('.demo-terminal code')).toHaveText(
+    'stack-manager add ./project',
+  )
+  await page.getByRole('button', { name: 'Next step', exact: true }).click()
+  await page.getByRole('button', { name: 'Play demo', exact: true }).click()
+  await page.clock.runFor(150)
+  await expect(page.locator('.demo-terminal code')).toHaveText(
+    'stack-manager create shop --name search-ui',
+  )
+  await expect(page.locator('.stack-visual figcaption')).toHaveText(
+    'Allocating ports for search-ui.',
+  )
+  await expect(page.locator('.worktree-card')).toHaveCount(0)
+  await page.clock.runFor(1650)
+  await expect(page.locator('.pending-stack')).toContainText('Ports allocated')
+  await expect(page.locator('.stack-service')).toHaveCount(0)
+  await page.clock.runFor(1650)
+  await expect(page.locator('.stack-visual figcaption')).toHaveText(
+    'Creating the frontend worktree.',
+  )
+  await page.clock.runFor(1650)
+  await expect(page.locator('.pending-stack')).toHaveCount(0)
+  await expect(page.locator('.demo-status.stopped')).toHaveCount(3)
+  await page.clock.runFor(1650)
+  await expect(page.locator('.demo-terminal code')).toHaveText(
+    'stack-manager start search-ui',
+  )
+  await expect(page.locator('.demo-status.stopped')).toHaveCount(3)
+  await page.clock.runFor(1650)
+  await expect(
+    page
+      .locator('.stack-service')
+      .filter({ hasText: 'Backend' })
+      .locator('.demo-status'),
+  ).toHaveText('Starting')
+  await expect(
+    page
+      .locator('.stack-service')
+      .filter({ hasText: 'Frontend' })
+      .locator('.demo-status'),
+  ).toHaveText('Stopped')
+  await page.clock.runFor(1650)
+  await expect(
+    page
+      .locator('.stack-service')
+      .filter({ hasText: 'Backend' })
+      .locator('.demo-status'),
+  ).toHaveText('Healthy')
+  await expect(
+    page
+      .locator('.stack-service')
+      .filter({ hasText: 'Frontend' })
+      .locator('.demo-status'),
+  ).toHaveText('Starting')
+  await page.clock.runFor(1650)
+  await expect(page.locator('.demo-status.healthy')).toHaveCount(3)
+  await page.getByRole('button', { name: 'Pause demo' }).click()
 })
 
 test('page navigation starts at the top, and Features navigates to its section', async ({
@@ -169,6 +332,16 @@ for (const width of [1440, 390, 320]) {
             .filter(animation => animation.playState === 'running').length,
       ),
     ).toBe(0)
+    for (let step = 0; step < 5; step++) {
+      await page.getByRole('button', { name: 'Next step', exact: true }).click()
+    }
+    await expect(page.locator('.worktree-card')).toHaveCount(2)
+    await expect(page.locator('.demo-status.unhealthy')).toHaveCount(2)
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true)
     const accessibility = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
       .analyze()

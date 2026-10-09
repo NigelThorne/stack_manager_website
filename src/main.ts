@@ -8,6 +8,7 @@ import { modifyFields } from 'foldkit/struct'
 import { Url, toString as urlToString } from 'foldkit/url'
 
 import { AppRoute, homeRouter, quickstartRouter, urlToAppRoute } from './route'
+import * as StackDemo from './stack-demo'
 
 export const WorkflowStep = defineTaggedUnion({
   Configure: {},
@@ -19,11 +20,13 @@ export type WorkflowStep = typeof WorkflowStep.Type
 export const Model = Schema.Struct({
   route: AppRoute,
   workflowStep: WorkflowStep,
+  demo: StackDemo.Model,
 })
 export type Model = typeof Model.Type
 
 export const Message = defineMessageUnion({
   SelectedWorkflowStep: { step: WorkflowStep },
+  GotStackDemoMessage: { message: StackDemo.Message },
   ClickedLink: { request: UrlRequest },
   ChangedUrl: { url: Url },
   CompletedNavigateInternal: {},
@@ -31,12 +34,19 @@ export const Message = defineMessageUnion({
 })
 export type Message = typeof Message.Type
 
-export const init: Runtime.RoutingApplicationInit<Model, Message> = url => ({
-  model: {
-    route: urlToAppRoute(url),
-    workflowStep: WorkflowStep.Configure(),
-  },
-})
+export const init: Runtime.RoutingApplicationInit<Model, Message> = url => {
+  const demoInit_ = StackDemo.demoInit()
+  return {
+    model: {
+      route: urlToAppRoute(url),
+      workflowStep: WorkflowStep.Configure(),
+      demo: demoInit_.model,
+    },
+    commands: Command.mapMessages(demoInit_.commands, message =>
+      Message.GotStackDemoMessage({ message }),
+    ),
+  }
+}
 
 const NavigateInternal = Command.define('NavigateInternal', {
   args: { url: Schema.String },
@@ -73,6 +83,15 @@ export const update = (model: Model, message: Message) =>
     SelectedWorkflowStep: ({ step }) => ({
       model: modifyFields(model, { workflowStep: () => step }),
     }),
+    GotStackDemoMessage: ({ message }) => {
+      const demoUpdate_ = StackDemo.demoUpdate(model.demo, message)
+      return {
+        model: modifyFields(model, { demo: () => demoUpdate_.model }),
+        commands: Command.mapMessages(demoUpdate_.commands, childMessage =>
+          Message.GotStackDemoMessage({ message: childMessage }),
+        ),
+      }
+    },
     ClickedLink: ({ request }) =>
       UrlRequest.match<UpdateReturn>(request, {
         Internal: ({ url }) => ({
@@ -84,9 +103,19 @@ export const update = (model: Model, message: Message) =>
           commands: [LoadExternal({ href })],
         }),
       }),
-    ChangedUrl: ({ url }) => ({
-      model: modifyFields(model, { route: () => urlToAppRoute(url) }),
-    }),
+    ChangedUrl: ({ url }) => {
+      const route = urlToAppRoute(url)
+      const demoUpdate_ =
+        route._tag === 'Home'
+          ? { model: model.demo }
+          : StackDemo.leaveDemo(model.demo)
+      return {
+        model: modifyFields(model, {
+          route: () => route,
+          demo: () => demoUpdate_.model,
+        }),
+      }
+    },
     CompletedNavigateInternal: () => ({ model }),
     CompletedLoadExternal: () => ({ model }),
   })
@@ -118,92 +147,6 @@ const headerView = (h: HtmlBuilder<Message>): Html =>
           h.a([h.Href(FEATURES_URL)], ['Features']),
           h.a([h.Href(quickstartRouter())], ['Quickstart']),
           h.a([h.Href(GITHUB_URL)], ['GitHub']),
-        ],
-      ),
-    ],
-  )
-
-const terminalLine = (
-  status: string,
-  name: string,
-  detail: string,
-  h: HtmlBuilder<Message>,
-): Html =>
-  h.div(
-    [h.Class('terminal-line')],
-    [
-      h.span([h.Class(`status-dot ${status}`), h.AriaHidden(true)]),
-      h.span([h.Class('terminal-name')], [name]),
-      h.span([h.Class('terminal-detail')], [detail]),
-    ],
-  )
-
-const stackVisualView = (h: HtmlBuilder<Message>): Html =>
-  h.figure(
-    [
-      h.Class('stack-visual'),
-      h.AriaLabel('Illustration of two independent local stacks'),
-    ],
-    [
-      h.div(
-        [h.Class('visual-toolbar')],
-        [
-          h.span([], ['Two changes']),
-          h.span([h.Class('running-pill')], ['● running side by side']),
-        ],
-      ),
-      h.div(
-        [h.Class('worktree-row')],
-        [
-          h.div(
-            [h.Class('worktree-card')],
-            [
-              h.small([], ['STACK A']),
-              h.strong([], ['search-ui']),
-              h.div(
-                [h.Class('stack-service')],
-                [h.span([], ['Frontend']), h.code([], [':4312'])],
-              ),
-              h.div([h.Class('connector'), h.AriaHidden(true)]),
-              h.div(
-                [h.Class('stack-service')],
-                [h.span([], ['Backend']), h.code([], [':4311'])],
-              ),
-            ],
-          ),
-          h.div(
-            [h.Class('worktree-card')],
-            [
-              h.small([], ['STACK B']),
-              h.strong([], ['checkout-fix']),
-              h.div(
-                [h.Class('stack-service')],
-                [h.span([], ['Frontend']), h.code([], [':4332'])],
-              ),
-              h.div([h.Class('connector'), h.AriaHidden(true)]),
-              h.div(
-                [h.Class('stack-service')],
-                [h.span([], ['Backend']), h.code([], [':4331'])],
-              ),
-            ],
-          ),
-        ],
-      ),
-      h.div(
-        [h.Class('terminal')],
-        [
-          h.div(
-            [h.Class('terminal-top')],
-            [h.span([], ['Local review']), h.span([], ['•••'])],
-          ),
-          terminalLine('ready', 'search-ui', 'web + api ready', h),
-          terminalLine('ready', 'checkout-fix', 'web + api ready', h),
-        ],
-      ),
-      h.figcaption(
-        [],
-        [
-          'Each box is a complete end-to-end stack. Services connect within their own stack, not between stacks. Illustrative only.',
         ],
       ),
     ],
@@ -507,7 +450,11 @@ const homeView = (model: Model, h: HtmlBuilder<Message>): Html =>
               ),
             ],
           ),
-          stackVisualView(h),
+          StackDemo.demoView(
+            model.demo,
+            message => Message.GotStackDemoMessage({ message }),
+            h,
+          ),
         ],
       ),
       workflowView(model, h),
@@ -681,7 +628,13 @@ const footerView = (h: HtmlBuilder<Message>): Html =>
     [],
     [
       logoView(h),
-      h.p([], ['A local development tool by Nigel Thorne.']),
+      h.p(
+        [h.Class('footer-branding')],
+        [
+          h.span([], ['Nigel Thorne']),
+          h.span([], ['Building the tools your agent needs.']),
+        ],
+      ),
       h.a([h.Href(GITHUB_URL)], ['GitHub source']),
     ],
   )

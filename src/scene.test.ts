@@ -3,15 +3,18 @@ import { describe, test } from 'vitest'
 
 import { Model, WorkflowStep, update, view } from './main'
 import { AppRoute } from './route'
+import { demoInit } from './stack-demo'
 
 const homeModel = Model.make({
   route: AppRoute.Home(),
   workflowStep: WorkflowStep.Configure(),
+  demo: demoInit().model,
 })
 
 const quickstartModel = Model.make({
   route: AppRoute.Quickstart(),
   workflowStep: WorkflowStep.Configure(),
+  demo: demoInit().model,
 })
 
 describe('product site', () => {

@@ -60,7 +60,7 @@ mise exec -- pnpm exec wrangler whoami
 mise exec -- pnpm cloudflare:plan
 ```
 
-The stack refuses any stage other than `prod` and any Cloudflare profile pointing at a different account. Wrangler pins the same account in `wrangler.jsonc`. Use interactive Alchemy/Wrangler login if required; never copy tokens into the repository or chat.
+The stack refuses any stage other than `prod` and any Cloudflare profile pointing at a different account. The upload script pins the same account through `CLOUDFLARE_ACCOUNT_ID`, since Wrangler Pages does not accept `account_id` in its config. This is a public account identifier, not a credential. Use interactive Alchemy/Wrangler login if required; never copy tokens into the repository or chat.
 
 After approval of the exact account, plan, build, DNS record, costs and rollback:
 

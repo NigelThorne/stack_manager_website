@@ -18,7 +18,7 @@
     "preview:cloudflare": "wrangler pages dev dist/client --ip 127.0.0.1 --port 5198",
     "cloudflare:plan": "alchemy plan --stage prod --profile default",
     "cloudflare:provision": "alchemy deploy --stage prod --profile default",
-    "cloudflare:upload": "wrangler pages deploy dist/client --project-name stack-manager-website --branch main",
+    "cloudflare:upload": "CLOUDFLARE_ACCOUNT_ID=bcd94aafc110a8c2e44a1d013e7e0081 wrangler pages deploy dist/client --project-name stack-manager-website --branch main",
     "cloudflare:deploy": "pnpm build && pnpm cloudflare:provision && pnpm cloudflare:upload",
     "test": "vitest run",
     "lint": "oxlint src alchemy.run.ts tests"
